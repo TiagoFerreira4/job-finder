@@ -11,6 +11,7 @@
     "smoke:formatters": "tsx src/scripts/smoke-formatters.ts",
     "smoke:filters": "tsx src/scripts/smoke-filters.ts",
     "smoke:github-issues-source": "tsx src/scripts/smoke-github-issues-source.ts",
+    "smoke:location-eligibility": "tsx src/scripts/smoke-location-eligibility.ts",
     "smoke:mock-source": "tsx src/scripts/smoke-mock-source.ts",
     "smoke:sources": "tsx src/scripts/smoke-sources.ts",
     "smoke:supabase": "tsx src/scripts/smoke-supabase.ts",

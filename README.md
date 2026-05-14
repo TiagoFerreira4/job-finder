@@ -54,7 +54,14 @@ A fonte padrao le issues abertas de repositorios publicos brasileiros de vagas, 
 
 A busca prioriza oportunidades de estagio, trainee e junior em tecnologia ampla: dev, QA, dados, DevOps, mobile, produto e suporte tecnico. A fonte mockada continua no projeto apenas para smoke tests e desenvolvimento local.
 
-O fluxo salva todas as vagas novas aprovadas no Supabase e envia apenas um digest no Telegram com ate 5 melhores vagas por execucao.
+Regras obrigatorias de localizacao:
+
+- vagas em Recife/PE podem ser presenciais, hibridas ou remotas;
+- vagas fora de Recife/PE so sao aceitas se forem 100% remotas;
+- vagas hibridas/presenciais fora de Recife/PE sao bloqueadas;
+- vagas sem local claro e sem remoto explicito sao bloqueadas.
+
+O fluxo salva todas as vagas novas aprovadas no Supabase e envia digests paginados no Telegram, com ate 5 vagas por mensagem. Se houver mais de 5 vagas novas elegiveis, mais de um digest sera enviado.
 
 ## GitHub Actions
 

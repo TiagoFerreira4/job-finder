@@ -1,4 +1,5 @@
 import { normalizeUrl } from "../filters/normalize-url.js";
+import { formatTelegramDigestMessage } from "../formatters/format-telegram-digest-message.js";
 import { formatTelegramMessage } from "../formatters/format-telegram-message.js";
 import type { Job } from "../types/index.js";
 
@@ -32,6 +33,9 @@ const urls = [
 
 console.log("[MESSAGE]");
 console.log(formatTelegramMessage(job));
+console.log("");
+console.log("[DIGEST]");
+console.log(formatTelegramDigestMessage([job], 1, 1, 1));
 console.log("");
 console.log("[URLS]");
 

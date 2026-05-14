@@ -14,8 +14,8 @@ type RunStats = {
   invalidOrIgnored: number;
   duplicates: number;
   saved: number;
+  geographicBlocked: number;
   notified: number;
-  savedWithoutNotification: number;
   telegramMessages: number;
   failedToSend: number;
   sourceErrors: number;
@@ -27,8 +27,8 @@ function createInitialStats(): RunStats {
     invalidOrIgnored: 0,
     duplicates: 0,
     saved: 0,
+    geographicBlocked: 0,
     notified: 0,
-    savedWithoutNotification: 0,
     telegramMessages: 0,
     failedToSend: 0,
     sourceErrors: 0,
@@ -59,13 +59,11 @@ function buildJob(
 function logSummary(stats: RunStats): void {
   console.log(`[FOUND] ${stats.found} vagas encontradas`);
   console.log(`[FILTER] ${stats.invalidOrIgnored} vagas ignoradas`);
+  console.log(`[FILTER] ${stats.geographicBlocked} vagas bloqueadas por local`);
   console.log(`[DUPLICATE] ${stats.duplicates} vagas ja existiam`);
   console.log(`[SAVED] ${stats.saved} vagas novas salvas`);
-  console.log(`[TELEGRAM] ${stats.telegramMessages} digest enviado`);
+  console.log(`[TELEGRAM] ${stats.telegramMessages} digests enviados`);
   console.log(`[TELEGRAM] ${stats.notified} vagas notificadas`);
-  console.log(
-    `[TELEGRAM] ${stats.savedWithoutNotification} vagas salvas sem alerta`,
-  );
   console.log(`[TELEGRAM] ${stats.failedToSend} vagas falharam no envio`);
   console.log(`[SOURCE] ${stats.sourceErrors} fontes falharam`);
 }
@@ -79,6 +77,11 @@ async function processJob(
 
   if (ignore.shouldIgnore) {
     stats.invalidOrIgnored += 1;
+
+    if (ignore.category === "geography") {
+      stats.geographicBlocked += 1;
+    }
+
     console.log(
       `[FILTER] ${job.title ?? "Sem titulo"} ignorada: ${ignore.reason}`,
     );
@@ -128,45 +131,50 @@ async function sendDigest(savedJobs: Job[], stats: RunStats): Promise<void> {
   }
 
   const jobsToNotify = [...savedJobs]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, MAX_DIGEST_JOBS);
+    .sort((a, b) => b.score - a.score);
+  const totalPages = Math.ceil(jobsToNotify.length / MAX_DIGEST_JOBS);
 
-  stats.savedWithoutNotification = Math.max(
-    savedJobs.length - jobsToNotify.length,
-    0,
-  );
+  for (let index = 0; index < jobsToNotify.length; index += MAX_DIGEST_JOBS) {
+    const pageJobs = jobsToNotify.slice(index, index + MAX_DIGEST_JOBS);
+    const currentPage = index / MAX_DIGEST_JOBS + 1;
 
-  try {
-    const message = formatTelegramDigestMessage(jobsToNotify, savedJobs.length);
-    await sendTelegramMessage(message);
-    stats.telegramMessages += 1;
+    try {
+      const message = formatTelegramDigestMessage(
+        pageJobs,
+        savedJobs.length,
+        currentPage,
+        totalPages,
+      );
+      await sendTelegramMessage(message);
+      stats.telegramMessages += 1;
 
-    for (const job of jobsToNotify) {
-      if (!job.id) {
-        throw new Error("Vaga salva sem id retornado pelo Supabase.");
+      for (const job of pageJobs) {
+        if (!job.id) {
+          throw new Error("Vaga salva sem id retornado pelo Supabase.");
+        }
+
+        await jobsRepository.markAsSent(job.id);
+        stats.notified += 1;
       }
 
-      await jobsRepository.markAsSent(job.id);
-      stats.notified += 1;
-    }
+      console.log(
+        `[TELEGRAM] Digest ${currentPage}/${totalPages} enviado com ${pageJobs.length} vagas`,
+      );
+    } catch (error) {
+      stats.failedToSend += pageJobs.length;
 
-    console.log(
-      `[TELEGRAM] Digest enviado com ${jobsToNotify.length} vagas`,
-    );
-  } catch (error) {
-    stats.failedToSend += jobsToNotify.length;
-
-    for (const job of jobsToNotify) {
-      if (job.id) {
-        await jobsRepository.markAsFailed(job.id, error);
+      for (const job of pageJobs) {
+        if (job.id) {
+          await jobsRepository.markAsFailed(job.id, error);
+        }
       }
-    }
 
-    console.log(
-      `[TELEGRAM] Falha ao enviar digest: ${
-        error instanceof Error ? error.message : "Erro desconhecido"
-      }`,
-    );
+      console.log(
+        `[TELEGRAM] Falha ao enviar digest ${currentPage}/${totalPages}: ${
+          error instanceof Error ? error.message : "Erro desconhecido"
+        }`,
+      );
+    }
   }
 }
 

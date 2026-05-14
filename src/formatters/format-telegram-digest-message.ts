@@ -31,16 +31,13 @@ function formatJob(job: Job, index: number): string {
 export function formatTelegramDigestMessage(
   jobs: Job[],
   totalSaved: number,
+  page: number,
+  totalPages: number,
 ): string {
-  const hiddenJobs = Math.max(totalSaved - jobs.length, 0);
   const header = [
-    `Job Finder: ${jobs.length} melhores vagas novas`,
+    `Job Finder: vagas novas ${page}/${totalPages}`,
     `Total salvo nesta execucao: ${totalSaved}`,
   ];
-
-  if (hiddenJobs > 0) {
-    header.push(`Outras vagas salvas sem alerta: ${hiddenJobs}`);
-  }
 
   return [
     ...header,

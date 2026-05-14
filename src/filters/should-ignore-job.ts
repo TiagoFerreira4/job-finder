@@ -1,10 +1,12 @@
 import type { SourceJob } from "../types/index.js";
+import { checkLocationEligibility } from "./location-eligibility.js";
 import { MIN_SCORE } from "./score-job.js";
 import { getSearchableJobText } from "./text.js";
 
 export type IgnoreJobResult = {
   shouldIgnore: boolean;
   reason?: string;
+  category?: "validation" | "placeholder" | "seniority" | "geography" | "score";
 };
 
 const BLOCKED_SENIORITY_TERMS = [
@@ -45,6 +47,7 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: "Vaga sem titulo",
+      category: "validation",
     };
   }
 
@@ -52,6 +55,7 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: "Vaga sem URL",
+      category: "validation",
     };
   }
 
@@ -67,6 +71,7 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: `Titulo parece placeholder: ${placeholderTerm}`,
+      category: "placeholder",
     };
   }
 
@@ -79,6 +84,17 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: `Senioridade incompatível: ${blockedTerm}`,
+      category: "seniority",
+    };
+  }
+
+  const locationEligibility = checkLocationEligibility(job);
+
+  if (!locationEligibility.isEligible) {
+    return {
+      shouldIgnore: true,
+      reason: `Localizacao inviavel: ${locationEligibility.reason}`,
+      category: "geography",
     };
   }
 
@@ -86,6 +102,7 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: `Score abaixo do minimo: ${score}`,
+      category: "score",
     };
   }
 
