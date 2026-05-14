@@ -4,7 +4,8 @@ const jobs: SourceJob[] = [
   {
     title: "Estagio em Desenvolvimento Fullstack",
     company: "Empresa Boa",
-    location: "Recife / Remoto",
+    location: "Recife/PE",
+    workMode: "online",
     url: "https://example.com/jobs/estagio-fullstack",
     source: "Mock Source",
     description: "Vaga com Node, TypeScript, React, backend, frontend e APIs.",
@@ -15,7 +16,8 @@ const jobs: SourceJob[] = [
   {
     title: "Estagio em Desenvolvimento Fullstack",
     company: "Empresa Boa",
-    location: "Recife / Remoto",
+    location: "Recife/PE",
+    workMode: "online",
     url: "https://example.com/jobs/estagio-fullstack",
     source: "Mock Source",
     description: "Duplicata da vaga boa para validar deduplicacao futura.",
@@ -26,7 +28,7 @@ const jobs: SourceJob[] = [
   {
     title: "Desenvolvedor Backend Senior",
     company: "Empresa Senior",
-    location: "Remoto",
+    workMode: "online",
     url: "https://example.com/jobs/backend-senior",
     source: "Mock Source",
     description: "Vaga para senior com Node, TypeScript e 5 anos de experiencia.",
@@ -38,6 +40,7 @@ const jobs: SourceJob[] = [
     title: "Estagio em Software",
     company: "Empresa Sem URL",
     location: "Recife",
+    workMode: "presential",
     source: "Mock Source",
     description: "Vaga de estagio em desenvolvimento de software.",
     rawPayload: {
@@ -47,6 +50,7 @@ const jobs: SourceJob[] = [
   {
     company: "Empresa Sem Titulo",
     location: "Recife",
+    workMode: "hybrid",
     url: "https://example.com/jobs/sem-titulo",
     source: "Mock Source",
     description: "Vaga de estagio em desenvolvimento de software.",
@@ -57,7 +61,8 @@ const jobs: SourceJob[] = [
   {
     title: "Assistente Administrativo",
     company: "Empresa Baixo Score",
-    location: "Presencial",
+    location: "Sao Paulo",
+    workMode: "presential",
     url: "https://example.com/jobs/assistente-administrativo",
     source: "Mock Source",
     description: "Atividades administrativas e atendimento interno.",

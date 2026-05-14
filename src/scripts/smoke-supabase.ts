@@ -7,7 +7,8 @@ function buildSmokeJob(kind: "sent" | "failed"): Job {
   return {
     title: `Smoke Test Supabase ${suffix}`,
     company: "Job Finder Bot",
-    location: "Recife / Remoto",
+    location: "Recife/PE",
+    workMode: "online",
     url: `https://example.com/jobs/job-finder-smoke-${suffix}`,
     urlNormalized: `https://example.com/jobs/job-finder-smoke-${suffix}`,
     fingerprint: `job-finder-smoke-${suffix}`,

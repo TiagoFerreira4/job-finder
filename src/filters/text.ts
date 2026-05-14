@@ -13,6 +13,7 @@ export function getSearchableJobText(job: Job | SourceJob): string {
       job.title,
       job.company,
       job.location,
+      job.workMode,
       job.source,
       job.description,
     ]

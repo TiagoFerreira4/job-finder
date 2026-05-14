@@ -36,9 +36,9 @@ const POSITIVE_RULES: ScoreRule[] = [
     reason: "Menciona Recife",
   },
   {
-    patterns: ["remoto"],
+    patterns: ["remoto", "online", "home office", "home-office"],
     points: 3,
-    reason: "Menciona remoto",
+    reason: "Menciona online/remoto",
   },
   {
     patterns: ["remote"],

@@ -1,3 +1,4 @@
+import { formatWorkMode, inferWorkMode } from "../filters/work-mode.js";
 import type { Job } from "../types/index.js";
 
 const MAX_REASONS = 3;
@@ -23,6 +24,7 @@ export function formatTelegramMessage(job: Job): string {
     `Titulo: ${job.title}`,
     `Empresa: ${formatOptional(job.company, "Empresa nao informada")}`,
     `Local: ${formatOptional(job.location, "Local nao informado")}`,
+    `Modalidade: ${formatWorkMode(job.workMode ?? inferWorkMode(job))}`,
     `Fonte: ${job.source}`,
     `Score: ${job.score}`,
     "",

@@ -45,6 +45,7 @@ function buildJob(
     title: job.title ?? "",
     company: job.company,
     location: job.location,
+    workMode: job.workMode,
     url: job.url ?? "",
     urlNormalized,
     source: job.source,

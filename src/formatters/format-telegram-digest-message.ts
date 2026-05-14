@@ -1,3 +1,4 @@
+import { formatWorkMode, inferWorkMode } from "../filters/work-mode.js";
 import type { Job } from "../types/index.js";
 
 const MAX_REASONS_PER_JOB = 2;
@@ -21,6 +22,7 @@ function formatJob(job: Job, index: number): string {
     `${index + 1}. ${job.title}`,
     `Empresa: ${formatOptional(job.company, "Nao informada")}`,
     `Local: ${formatOptional(job.location, "Nao informado")}`,
+    `Modalidade: ${formatWorkMode(job.workMode ?? inferWorkMode(job))}`,
     `Fonte: ${job.source}`,
     `Score: ${job.score}`,
     `Motivos: ${formatReasons(job.matchedReasons)}`,

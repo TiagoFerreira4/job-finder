@@ -129,7 +129,10 @@ export const jobsRepository = {
       throw new Error(`Erro ao criar vaga no Supabase: ${error.message}`);
     }
 
-    return mapRowToJob(data as JobRow);
+    return {
+      ...mapRowToJob(data as JobRow),
+      workMode: job.workMode,
+    };
   },
 
   async markAsSent(id: string): Promise<void> {

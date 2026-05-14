@@ -63,6 +63,8 @@ Regras obrigatorias de localizacao:
 
 O fluxo salva todas as vagas novas aprovadas no Supabase e envia digests paginados no Telegram, com ate 5 vagas por mensagem. Se houver mais de 5 vagas novas elegiveis, mais de um digest sera enviado.
 
+Nas mensagens do Telegram, `Local` representa apenas o local fisico quando houver cidade/estado. A modalidade de trabalho aparece separada em `Modalidade`, com valores como `Presencial`, `Hibrido` ou `Online`.
+
 ## GitHub Actions
 
 O workflow fica em `.github/workflows/search-jobs.yml` e roda manualmente via `workflow_dispatch`.

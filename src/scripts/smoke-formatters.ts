@@ -6,7 +6,8 @@ import type { Job } from "../types/index.js";
 const job: Job = {
   title: "Estagio em Desenvolvimento Web",
   company: "Empresa Exemplo",
-  location: "Recife / Hibrido",
+  location: "Recife/PE",
+  workMode: "hybrid",
   url: "https://example.com/jobs/123?utm_source=linkedin",
   urlNormalized: "https://example.com/jobs/123",
   source: "smoke-formatters",

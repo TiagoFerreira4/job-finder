@@ -1,5 +1,6 @@
 import { env } from "../config/env.js";
 import { normalizeText } from "../filters/text.js";
+import { inferWorkMode } from "../filters/work-mode.js";
 import type { JobSource, SourceJob } from "../types/index.js";
 import { githubIssuesRepositories } from "./sources-config.js";
 import type { GitHubIssuesRepositoryConfig } from "./sources-config.js";
@@ -62,6 +63,40 @@ function getIssueText(issue: GitHubIssue): string {
   );
 }
 
+function cleanPhysicalLocation(value: string): string | undefined {
+  const cleaned = normalizeText(value)
+    .replace(/\b(100%|full|fully|totalmente)\b/g, " ")
+    .replace(/\b(remoto|remote|hibrido|hybrid|presencial|onsite|on-site)\b/g, " ")
+    .replace(/\b(vaga|job|jr|junior|pleno|senior|developer|desenvolvedor)\b/g, " ")
+    .replace(/[|()[\]]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned || cleaned === "brasil") {
+    return undefined;
+  }
+
+  const location = cleaned
+    .split(/[-/,]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) =>
+      part
+        .split(" ")
+        .map((word) => {
+          if (["df", "pe", "sp", "rj", "mg", "pr", "sc", "rs"].includes(word)) {
+            return word.toUpperCase();
+          }
+
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(" "),
+    )
+    .join(" / ");
+
+  return location || undefined;
+}
+
 function hasAnyTerm(text: string, terms: string[]): boolean {
   return terms.some((term) => text.includes(term));
 }
@@ -99,31 +134,23 @@ function extractCompany(title: string): string | undefined {
   return undefined;
 }
 
-function inferLocation(issue: GitHubIssue): string | undefined {
+function inferPhysicalLocation(issue: GitHubIssue): string | undefined {
   const text = getIssueText(issue);
-  const locations: string[] = [];
 
   if (text.includes("recife") || text.includes("pernambuco")) {
-    locations.push("Recife/PE");
+    return "Recife/PE";
   }
 
-  if (text.includes("remoto") || text.includes("remote")) {
-    locations.push("Remoto");
+  const bracketMatch = issue.title.match(/\[([^\]]+)\]/);
+  const bracketLocation = bracketMatch?.[1]
+    ? cleanPhysicalLocation(bracketMatch[1])
+    : undefined;
+
+  if (bracketLocation) {
+    return bracketLocation;
   }
 
-  if (text.includes("hibrido")) {
-    locations.push("Hibrido");
-  }
-
-  if (text.includes("presencial")) {
-    locations.push("Presencial");
-  }
-
-  if (locations.length === 0 && text.includes("brasil")) {
-    locations.push("Brasil");
-  }
-
-  return locations.length > 0 ? locations.join(" / ") : undefined;
+  return undefined;
 }
 
 function buildDescription(issue: GitHubIssue): string | undefined {
@@ -144,7 +171,12 @@ function mapIssueToSourceJob(
   return {
     title: issue.title,
     company: extractCompany(issue.title),
-    location: inferLocation(issue),
+    location: inferPhysicalLocation(issue),
+    workMode: inferWorkMode({
+      title: issue.title,
+      source: repository.sourceName,
+      description: buildDescription(issue),
+    }),
     url: issue.html_url,
     source: repository.sourceName,
     description: buildDescription(issue),
