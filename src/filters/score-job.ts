@@ -22,8 +22,13 @@ const POSITIVE_RULES: ScoreRule[] = [
   },
   {
     patterns: ["trainee"],
-    points: 2,
+    points: 4,
     reason: "Menciona trainee",
+  },
+  {
+    patterns: ["junior", "jr", "entry level", "entry-level"],
+    points: 4,
+    reason: "Menciona vaga junior",
   },
   {
     patterns: ["recife"],
@@ -34,6 +39,11 @@ const POSITIVE_RULES: ScoreRule[] = [
     patterns: ["remoto"],
     points: 3,
     reason: "Menciona remoto",
+  },
+  {
+    patterns: ["remote"],
+    points: 3,
+    reason: "Menciona remote",
   },
   {
     patterns: ["hibrido"],
@@ -61,6 +71,11 @@ const POSITIVE_RULES: ScoreRule[] = [
     reason: "Menciona frontend",
   },
   {
+    patterns: ["front-end", "front end"],
+    points: 2,
+    reason: "Menciona frontend",
+  },
+  {
     patterns: ["fullstack"],
     points: 2,
     reason: "Menciona fullstack",
@@ -84,6 +99,31 @@ const POSITIVE_RULES: ScoreRule[] = [
     patterns: ["react"],
     points: 2,
     reason: "Menciona React",
+  },
+  {
+    patterns: ["qa", "quality assurance", "testes", "tester"],
+    points: 2,
+    reason: "Menciona QA/testes",
+  },
+  {
+    patterns: ["dados", "data", "data science", "data analyst"],
+    points: 2,
+    reason: "Menciona dados",
+  },
+  {
+    patterns: ["devops", "dev ops", "cloud"],
+    points: 2,
+    reason: "Menciona DevOps/cloud",
+  },
+  {
+    patterns: ["mobile", "android", "ios", "swift", "kotlin"],
+    points: 2,
+    reason: "Menciona mobile",
+  },
+  {
+    patterns: ["suporte tecnico", "support engineer", "produto"],
+    points: 1,
+    reason: "Menciona area tecnica ampla",
   },
   {
     patterns: ["java"],
@@ -127,6 +167,11 @@ const NEGATIVE_RULES: ScoreRule[] = [
     patterns: ["tech lead"],
     points: -5,
     reason: "Indica vaga de lideranca tecnica",
+  },
+  {
+    patterns: ["lead", "lider estudantil", "principal", "staff", "middle"],
+    points: -5,
+    reason: "Indica senioridade alta",
   },
   {
     patterns: ["3 anos"],

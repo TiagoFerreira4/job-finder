@@ -1,20 +1,22 @@
 import { normalizeUrl } from "./filters/normalize-url.js";
 import { scoreJob } from "./filters/score-job.js";
 import { shouldIgnoreJob } from "./filters/should-ignore-job.js";
-import { formatTelegramMessage } from "./formatters/format-telegram-message.js";
+import { formatTelegramDigestMessage } from "./formatters/format-telegram-digest-message.js";
 import { jobsRepository } from "./repositories/jobs-repository.js";
 import { sendTelegramMessage } from "./services/telegram.js";
 import { fetchJobsFromSources } from "./sources/index.js";
 import type { Job, SourceJob } from "./types/index.js";
 
-const MAX_NEW_JOBS_PER_RUN = 5;
+const MAX_DIGEST_JOBS = 5;
 
 type RunStats = {
   found: number;
   invalidOrIgnored: number;
   duplicates: number;
   saved: number;
-  sent: number;
+  notified: number;
+  savedWithoutNotification: number;
+  telegramMessages: number;
   failedToSend: number;
   sourceErrors: number;
 };
@@ -25,7 +27,9 @@ function createInitialStats(): RunStats {
     invalidOrIgnored: 0,
     duplicates: 0,
     saved: 0,
-    sent: 0,
+    notified: 0,
+    savedWithoutNotification: 0,
+    telegramMessages: 0,
     failedToSend: 0,
     sourceErrors: 0,
   };
@@ -57,12 +61,19 @@ function logSummary(stats: RunStats): void {
   console.log(`[FILTER] ${stats.invalidOrIgnored} vagas ignoradas`);
   console.log(`[DUPLICATE] ${stats.duplicates} vagas ja existiam`);
   console.log(`[SAVED] ${stats.saved} vagas novas salvas`);
-  console.log(`[TELEGRAM] ${stats.sent} mensagens enviadas`);
-  console.log(`[TELEGRAM] ${stats.failedToSend} mensagens falharam`);
+  console.log(`[TELEGRAM] ${stats.telegramMessages} digest enviado`);
+  console.log(`[TELEGRAM] ${stats.notified} vagas notificadas`);
+  console.log(
+    `[TELEGRAM] ${stats.savedWithoutNotification} vagas salvas sem alerta`,
+  );
+  console.log(`[TELEGRAM] ${stats.failedToSend} vagas falharam no envio`);
   console.log(`[SOURCE] ${stats.sourceErrors} fontes falharam`);
 }
 
-async function processJob(job: SourceJob, stats: RunStats): Promise<void> {
+async function processJob(
+  job: SourceJob,
+  stats: RunStats,
+): Promise<Job | undefined> {
   const scoreResult = scoreJob(job);
   const ignore = shouldIgnoreJob(job, scoreResult.score);
 
@@ -71,7 +82,7 @@ async function processJob(job: SourceJob, stats: RunStats): Promise<void> {
     console.log(
       `[FILTER] ${job.title ?? "Sem titulo"} ignorada: ${ignore.reason}`,
     );
-    return;
+    return undefined;
   }
 
   let urlNormalized: string;
@@ -85,7 +96,7 @@ async function processJob(job: SourceJob, stats: RunStats): Promise<void> {
         error instanceof Error ? error.message : "URL invalida"
       }`,
     );
-    return;
+    return undefined;
   }
 
   const exists = await jobsRepository.existsByUrlNormalized(urlNormalized);
@@ -93,7 +104,7 @@ async function processJob(job: SourceJob, stats: RunStats): Promise<void> {
   if (exists) {
     stats.duplicates += 1;
     console.log(`[DUPLICATE] ${job.title}: ${urlNormalized}`);
-    return;
+    return undefined;
   }
 
   const jobToCreate = buildJob(
@@ -107,26 +118,52 @@ async function processJob(job: SourceJob, stats: RunStats): Promise<void> {
   stats.saved += 1;
   console.log(`[SAVED] ${savedJob.title}`);
 
+  return savedJob;
+}
+
+async function sendDigest(savedJobs: Job[], stats: RunStats): Promise<void> {
+  if (savedJobs.length === 0) {
+    console.log("[TELEGRAM] Nenhuma vaga nova para enviar no digest");
+    return;
+  }
+
+  const jobsToNotify = [...savedJobs]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_DIGEST_JOBS);
+
+  stats.savedWithoutNotification = Math.max(
+    savedJobs.length - jobsToNotify.length,
+    0,
+  );
+
   try {
-    const message = formatTelegramMessage(savedJob);
+    const message = formatTelegramDigestMessage(jobsToNotify, savedJobs.length);
     await sendTelegramMessage(message);
+    stats.telegramMessages += 1;
 
-    if (!savedJob.id) {
-      throw new Error("Vaga salva sem id retornado pelo Supabase.");
-    }
+    for (const job of jobsToNotify) {
+      if (!job.id) {
+        throw new Error("Vaga salva sem id retornado pelo Supabase.");
+      }
 
-    await jobsRepository.markAsSent(savedJob.id);
-    stats.sent += 1;
-    console.log(`[TELEGRAM] Mensagem enviada para ${savedJob.title}`);
-  } catch (error) {
-    stats.failedToSend += 1;
-
-    if (savedJob.id) {
-      await jobsRepository.markAsFailed(savedJob.id, error);
+      await jobsRepository.markAsSent(job.id);
+      stats.notified += 1;
     }
 
     console.log(
-      `[TELEGRAM] Falha ao enviar ${savedJob.title}: ${
+      `[TELEGRAM] Digest enviado com ${jobsToNotify.length} vagas`,
+    );
+  } catch (error) {
+    stats.failedToSend += jobsToNotify.length;
+
+    for (const job of jobsToNotify) {
+      if (job.id) {
+        await jobsRepository.markAsFailed(job.id, error);
+      }
+    }
+
+    console.log(
+      `[TELEGRAM] Falha ao enviar digest: ${
         error instanceof Error ? error.message : "Erro desconhecido"
       }`,
     );
@@ -138,6 +175,7 @@ async function main() {
 
   console.log("[START] Buscando vagas...");
 
+  const savedJobs: Job[] = [];
   const { jobs, summary } = await fetchJobsFromSources();
   stats.found = jobs.length;
   stats.sourceErrors = summary.filter((source) => !source.success).length;
@@ -156,16 +194,14 @@ async function main() {
   }
 
   for (const job of jobs) {
-    if (stats.saved >= MAX_NEW_JOBS_PER_RUN) {
-      console.log(
-        `[LIMIT] Limite de ${MAX_NEW_JOBS_PER_RUN} vagas novas por execucao atingido`,
-      );
-      break;
-    }
+    const savedJob = await processJob(job, stats);
 
-    await processJob(job, stats);
+    if (savedJob) {
+      savedJobs.push(savedJob);
+    }
   }
 
+  await sendDigest(savedJobs, stats);
   logSummary(stats);
   console.log("[DONE] Execucao finalizada.");
 }

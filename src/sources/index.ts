@@ -1,5 +1,5 @@
 import type { JobSource, SourceJob } from "../types/index.js";
-import { githubSearchSource } from "./github-search-source.js";
+import { githubIssuesRepositoriesSource } from "./github-issues-repositories-source.js";
 
 export type SourceExecutionSummary = {
   source: string;
@@ -13,7 +13,7 @@ export type FetchJobsFromSourcesResult = {
   summary: SourceExecutionSummary[];
 };
 
-export const jobSources: JobSource[] = [githubSearchSource];
+export const jobSources: JobSource[] = [githubIssuesRepositoriesSource];
 
 function serializeError(error: unknown): string {
   if (error instanceof Error) {

@@ -4,7 +4,7 @@ Bot em Node.js e TypeScript para buscar vagas de estagio, salvar resultados no S
 
 ## Status
 
-Pipeline principal implementado com fonte real via GitHub Search: busca vagas, filtra por score, evita duplicatas no Supabase e envia alertas no Telegram.
+Pipeline principal implementado com fontes reais via issues publicas no GitHub: busca vagas, filtra por score, evita duplicatas no Supabase e envia um digest no Telegram com as melhores oportunidades.
 
 A primeira execucao no GitHub Actions deve ser manual. O agendamento por cron sera ativado depois que a execucao manual passar no GitHub.
 
@@ -39,14 +39,22 @@ Preencha o `.env` com:
 - `npm run search-jobs`: comando usado pelo GitHub Actions.
 - `npm run typecheck`: valida os tipos TypeScript.
 
-## Fontes
+## Fontes E Alertas
 
-A fonte padrao usa GitHub Search em repositorios publicos brasileiros de vagas:
+A fonte padrao le issues abertas de repositorios publicos brasileiros de vagas, incluindo:
 
 - `frontendbr/vagas`
 - `backend-br/vagas`
+- `react-brasil/vagas`
+- `nodejsdevbr/vagas`
+- `qa-brasil/vagas`
+- `soujava/vagas-java`
+- `datascience-br/vagas`
+- `DevOps-Brasil/Vagas`
 
-A busca prioriza vagas de estagio e junior em remoto/Recife. A fonte mockada continua no projeto apenas para smoke tests e desenvolvimento local. O fluxo padrao processa no maximo 5 vagas novas por execucao para evitar excesso de mensagens.
+A busca prioriza oportunidades de estagio, trainee e junior em tecnologia ampla: dev, QA, dados, DevOps, mobile, produto e suporte tecnico. A fonte mockada continua no projeto apenas para smoke tests e desenvolvimento local.
+
+O fluxo salva todas as vagas novas aprovadas no Supabase e envia apenas um digest no Telegram com ate 5 melhores vagas por execucao.
 
 ## GitHub Actions
 

@@ -12,7 +12,16 @@ const BLOCKED_SENIORITY_TERMS = [
   "pleno",
   "especialista",
   "tech lead",
+  "lead",
+  "lider estudantil",
+  "principal",
+  "staff",
+  "middle",
+  "coordenador",
+  "gerente",
 ];
+
+const PLACEHOLDER_TITLE_TERMS = ["[cargo]", "empresa - localizacao"];
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,6 +52,21 @@ export function shouldIgnoreJob(
     return {
       shouldIgnore: true,
       reason: "Vaga sem URL",
+    };
+  }
+
+  const normalizedTitle = getSearchableJobText({
+    title: job.title,
+    source: job.source,
+  });
+  const placeholderTerm = PLACEHOLDER_TITLE_TERMS.find((term) =>
+    normalizedTitle.includes(term),
+  );
+
+  if (placeholderTerm) {
+    return {
+      shouldIgnore: true,
+      reason: `Titulo parece placeholder: ${placeholderTerm}`,
     };
   }
 
