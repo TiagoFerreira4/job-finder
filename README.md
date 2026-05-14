@@ -4,7 +4,7 @@ Bot em Node.js e TypeScript para buscar vagas de estagio, salvar resultados no S
 
 ## Status
 
-Pipeline principal implementado com fonte mockada: busca vagas, filtra por score, evita duplicatas no Supabase e envia alertas no Telegram.
+Pipeline principal implementado com fonte real via GitHub Search: busca vagas, filtra por score, evita duplicatas no Supabase e envia alertas no Telegram.
 
 A primeira execucao no GitHub Actions deve ser manual. O agendamento por cron sera ativado depois que a execucao manual passar no GitHub.
 
@@ -31,12 +31,22 @@ Preencha o `.env` com:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
+- `GITHUB_TOKEN` opcional para aumentar o limite da GitHub API localmente
 
 ## Scripts
 
 - `npm run dev`: executa a busca localmente.
 - `npm run search-jobs`: comando usado pelo GitHub Actions.
 - `npm run typecheck`: valida os tipos TypeScript.
+
+## Fontes
+
+A fonte padrao usa GitHub Search em repositorios publicos brasileiros de vagas:
+
+- `frontendbr/vagas`
+- `backend-br/vagas`
+
+A busca prioriza vagas de estagio e junior em remoto/Recife. A fonte mockada continua no projeto apenas para smoke tests e desenvolvimento local. O fluxo padrao processa no maximo 5 vagas novas por execucao para evitar excesso de mensagens.
 
 ## GitHub Actions
 
@@ -48,6 +58,8 @@ Configure os secrets no GitHub em `Settings > Secrets and variables > Actions > 
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
+
+O workflow usa o `GITHUB_TOKEN` interno do GitHub Actions automaticamente, entao nao e necessario criar esse secret no repositorio.
 
 Depois rode manualmente:
 

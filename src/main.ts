@@ -7,6 +7,8 @@ import { sendTelegramMessage } from "./services/telegram.js";
 import { fetchJobsFromSources } from "./sources/index.js";
 import type { Job, SourceJob } from "./types/index.js";
 
+const MAX_NEW_JOBS_PER_RUN = 5;
+
 type RunStats = {
   found: number;
   invalidOrIgnored: number;
@@ -51,6 +53,7 @@ function buildJob(
 }
 
 function logSummary(stats: RunStats): void {
+  console.log(`[FOUND] ${stats.found} vagas encontradas`);
   console.log(`[FILTER] ${stats.invalidOrIgnored} vagas ignoradas`);
   console.log(`[DUPLICATE] ${stats.duplicates} vagas ja existiam`);
   console.log(`[SAVED] ${stats.saved} vagas novas salvas`);
@@ -153,6 +156,13 @@ async function main() {
   }
 
   for (const job of jobs) {
+    if (stats.saved >= MAX_NEW_JOBS_PER_RUN) {
+      console.log(
+        `[LIMIT] Limite de ${MAX_NEW_JOBS_PER_RUN} vagas novas por execucao atingido`,
+      );
+      break;
+    }
+
     await processJob(job, stats);
   }
 
