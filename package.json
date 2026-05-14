@@ -1,0 +1,37 @@
+{
+  "name": "job-finder",
+  "version": "1.0.0",
+  "description": "Bot para buscar vagas de estagio e enviar alertas no Telegram.",
+  "private": true,
+  "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "search-jobs": "tsx src/main.ts",
+    "smoke:formatters": "tsx src/scripts/smoke-formatters.ts",
+    "smoke:filters": "tsx src/scripts/smoke-filters.ts",
+    "smoke:mock-source": "tsx src/scripts/smoke-mock-source.ts",
+    "smoke:sources": "tsx src/scripts/smoke-sources.ts",
+    "smoke:supabase": "tsx src/scripts/smoke-supabase.ts",
+    "smoke:telegram": "tsx src/scripts/smoke-telegram.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "jobs",
+    "telegram",
+    "supabase",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.4",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "tsx": "^4.21.1",
+    "typescript": "^6.0.3"
+  }
+}
